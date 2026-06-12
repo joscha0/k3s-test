@@ -133,7 +133,10 @@ pre {
   fill: none;
   stroke: #888;
   stroke-width: 2;
-  marker-end: url(#arrow);
+}
+
+.edge.config {
+  stroke-dasharray: 5 5;
 }
 
 .node > rect {

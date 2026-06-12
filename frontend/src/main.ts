@@ -159,8 +159,8 @@ function node (id: string, x: number, y: number, title: string, subtitle: string
   return `<g id="node-${id}" class="node ${kind}${available ? '' : ' unavailable'}" transform="translate(${x} ${y})"><rect width="156" height="66" rx="12"/><text x="16" y="28">${escapeHtml(title)}</text><text class="muted" x="16" y="48">${available ? escapeHtml(subtitle) : 'Unavailable'}</text></g>`
 }
 
-function edge (id: string, x1: number, y1: number, x2: number, y2: number): string {
-  return `<path id="edge-${id}" class="edge" d="M ${x1} ${y1} C ${(x1 + x2) / 2} ${y1}, ${(x1 + x2) / 2} ${y2}, ${x2} ${y2}"/>`
+function edge (id: string, x1: number, y1: number, x2: number, y2: number, kind = ''): string {
+  return `<path id="edge-${id}" class="edge ${kind}" d="M ${x1} ${y1} C ${(x1 + x2) / 2} ${y1}, ${(x1 + x2) / 2} ${y2}, ${x2} ${y2}"${kind === 'config' ? '' : ' marker-end="url(#arrow)"'}/>`
 }
 
 function podNode (pod: Pod, x: number, y: number): string {
@@ -187,19 +187,20 @@ function topology (snapshot: Snapshot, selected?: Trace): string {
     mongodb: snapshot.pods.filter(pod => pod.app === 'mongodb')
   }
   const maxReplicas = Math.max(grouped.frontend.length, grouped.backend.length, grouped.mongodb.length, 1)
-  const width = Math.max(1480, 1160 + maxReplicas * 270)
+  const width = Math.max(1360, 1040 + maxReplicas * 270)
   const height = 720
   let svg = `<svg id="topology" viewBox="0 0 ${width} ${height}" style="min-width:${width}px" role="img" aria-label="Live Kubernetes architecture"><defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z"/></marker></defs>`
-  svg += edge('browser-lb', 196, 103, 260, 103) + edge('lb-traefik', 416, 103, 480, 103) + edge('traefik-ingress', 636, 103, 700, 103)
-  svg += edge('ingress-frontend', 856, 103, 920, 215) + edge('ingress-backend', 856, 103, 920, 400) + edge('backend-mongodb', 1076, 400, 920, 585)
+  svg += edge('browser-lb', 196, 103, 260, 103) + edge('lb-traefik', 416, 103, 500, 103)
+  svg += edge('traefik-frontend', 656, 103, 800, 215) + edge('traefik-backend', 656, 103, 800, 400) + edge('backend-mongodb', 956, 400, 800, 585)
+  svg += edge('ingress-configures-traefik', 578, 256, 578, 136, 'config')
   svg += node('browser', 40, 70, 'Browser', 'Request source', 'infra') + node('lb', 260, 70, 'k3d load balancer', ':8080 → :80', 'infra')
-  svg += node('traefik', 480, 70, 'Traefik', 'Ingress controller', 'infra') + node('ingress', 700, 70, 'Ingress', '/ and /api', 'infra', snapshot.components.ingress !== false)
-  svg += node('frontend-service', 920, 182, 'Frontend Service', 'port 8080', 'service', snapshot.components['frontend-service'] !== false) + node('backend-service', 920, 367, 'Backend Service', 'port 3000', 'service', snapshot.components['backend-service'] !== false) + node('mongodb-service', 920, 552, 'MongoDB Service', 'port 27017', 'service', snapshot.components['mongodb-service'] !== false)
+  svg += node('traefik', 500, 70, 'Traefik', 'Routes live traffic', 'infra') + node('ingress', 500, 256, 'Ingress', 'Configures / and /api', 'config', snapshot.components.ingress !== false)
+  svg += node('frontend-service', 800, 182, 'Frontend Service', 'port 8080', 'service', snapshot.components['frontend-service'] !== false) + node('backend-service', 800, 367, 'Backend Service', 'port 3000', 'service', snapshot.components['backend-service'] !== false) + node('mongodb-service', 800, 552, 'MongoDB Service', 'port 27017', 'service', snapshot.components['mongodb-service'] !== false)
   const groups: Array<[keyof typeof grouped, number, string]> = [['frontend', 170, 'frontend'], ['backend', 355, 'backend'], ['mongodb', 540, 'mongodb']]
   for (const [appName, startY] of groups) {
     grouped[appName].forEach((pod, index) => {
-      const x = 1160 + index * 270
-      svg += edge(`${appName}-pod-${pod.name}`, 1076, startY + 45, x, startY + 64)
+      const x = 1040 + index * 270
+      svg += edge(`${appName}-pod-${pod.name}`, 956, startY + 45, x, startY + 64)
       svg += podNode(pod, x, startY)
     })
   }
@@ -211,7 +212,7 @@ function topology (snapshot: Snapshot, selected?: Trace): string {
 function highlightFlow (trace?: Trace): void {
   document.querySelectorAll('.active-flow').forEach(element => element.classList.remove('active-flow'))
   if (trace === undefined) return
-  const ids = ['node-browser', 'node-lb', 'node-traefik', 'node-ingress', 'node-backend-service', `node-pod-${trace.backendPod}`, 'edge-browser-lb', 'edge-lb-traefik', 'edge-traefik-ingress', 'edge-ingress-backend', `edge-backend-pod-${trace.backendPod}`]
+  const ids = ['node-browser', 'node-lb', 'node-traefik', 'node-backend-service', `node-pod-${trace.backendPod}`, 'edge-browser-lb', 'edge-lb-traefik', 'edge-traefik-backend', `edge-backend-pod-${trace.backendPod}`]
   if (trace.accessedMongoDB) ids.push('node-mongodb-service', 'edge-backend-mongodb')
   ids.forEach(id => document.getElementById(id)?.classList.add('active-flow'))
 }
