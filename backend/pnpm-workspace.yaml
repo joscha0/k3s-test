@@ -1,0 +1,5 @@
+overrides:
+  semver: 7.7.2
+allowBuilds:
+  argon2: true
+  mongodb-memory-server: true

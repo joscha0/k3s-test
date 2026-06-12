@@ -1,0 +1,7 @@
+.env
+.kube/
+k3s/overlays/local/secret.env
+node_modules
+dist
+coverage
+*.log

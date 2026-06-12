@@ -6,7 +6,7 @@ test('default root route', async (t) => {
   const app = await build(t)
 
   const res = await app.inject({
-    url: '/'
+    url: '/api'
   })
-  assert.deepStrictEqual(JSON.parse(res.payload), { root: true })
+  assert.deepStrictEqual(JSON.parse(res.payload), { service: 'k3s-auth-backend', status: 'ok' })
 })

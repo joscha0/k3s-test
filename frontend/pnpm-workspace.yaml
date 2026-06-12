@@ -1,0 +1,4 @@
+overrides:
+  semver: 7.7.2
+allowBuilds:
+  esbuild: true

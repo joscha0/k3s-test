@@ -29,10 +29,12 @@ const app: FastifyPluginAsync<AppOptions> = async (
   // This loads all plugins defined in routes
   // define your routes in one of these
   // eslint-disable-next-line no-void
-  void fastify.register(AutoLoad, {
-    dir: join(__dirname, 'routes'),
-    options: opts
-  })
+  void fastify.register(async (api) => {
+    void api.register(AutoLoad, {
+      dir: join(__dirname, 'routes'),
+      options: opts
+    })
+  }, { prefix: '/api' })
 }
 
 export default app

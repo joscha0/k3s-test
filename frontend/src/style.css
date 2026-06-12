@@ -1,0 +1,29 @@
+body {
+  font-family: sans-serif;
+  max-width: 48rem;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+form, nav {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+label {
+  display: flex;
+  gap: 0.25rem;
+}
+
+button, input {
+  font: inherit;
+}
+
+pre {
+  border: 1px solid #aaa;
+  min-height: 3rem;
+  padding: 1rem;
+  white-space: pre-wrap;
+}
