@@ -9,6 +9,8 @@ export interface AppConfig {
   bootstrapAdminPassword?: string
   isProduction: boolean
   cookieSecure: boolean
+  podName: string
+  kubernetesNamespace: string
 }
 
 function required (name: string, fallback?: string): string {
@@ -31,7 +33,9 @@ export default fp(async (fastify) => {
     isProduction,
     cookieSecure: process.env.COOKIE_SECURE === undefined
       ? isProduction
-      : process.env.COOKIE_SECURE === 'true'
+      : process.env.COOKIE_SECURE === 'true',
+    podName: process.env.POD_NAME ?? 'local-backend',
+    kubernetesNamespace: process.env.POD_NAMESPACE ?? 'k3s-auth'
   }
 
   if ((config.bootstrapAdminUsername === undefined) !== (config.bootstrapAdminPassword === undefined)) {
@@ -39,7 +43,7 @@ export default fp(async (fastify) => {
   }
 
   fastify.decorate('config', config)
-})
+}, { name: 'config' })
 
 declare module 'fastify' {
   interface FastifyInstance {

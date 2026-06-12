@@ -5,6 +5,7 @@ import "@fastify/sensible";
 import fp from "fastify-plugin";
 import { ObjectId } from "mongodb";
 import type { UserRole } from "./database";
+import "./config";
 
 export interface AccessTokenPayload {
   sub: string;
@@ -43,7 +44,7 @@ export default fp(async (fastify) => {
       role: user.role,
     });
   });
-});
+}, { name: "auth", dependencies: ["config"] });
 
 declare module "@fastify/jwt" {
   interface FastifyJWT {

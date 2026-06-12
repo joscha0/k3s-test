@@ -1,15 +1,21 @@
 body {
   font-family: sans-serif;
-  max-width: 48rem;
-  margin: 2rem auto;
-  padding: 0 1rem;
+  margin: 2rem;
 }
 
-form, nav {
+button,
+input {
+  font: inherit;
+}
+
+form,
+.actions,
+.live-state,
+.dashboard-title {
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
-  margin-bottom: 1rem;
+  align-items: center;
 }
 
 label {
@@ -17,13 +23,196 @@ label {
   gap: 0.25rem;
 }
 
-button, input {
-  font: inherit;
+pre,
+.panel,
+.summary-card,
+.auth-card {
+  border: 1px solid #aaa;
+  padding: 1rem;
 }
 
 pre {
-  border: 1px solid #aaa;
   min-height: 3rem;
-  padding: 1rem;
   white-space: pre-wrap;
+}
+
+.error,
+#errors {
+  color: #b00;
+}
+
+.dashboard-title {
+  justify-content: space-between;
+}
+
+.summaries,
+.dashboard-grid {
+  display: grid;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.summaries {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.dashboard-grid {
+  grid-template-columns: minmax(0, 1fr) 22rem;
+  align-items: start;
+}
+
+.summary-card strong,
+.summary-card small {
+  display: block;
+  margin: 0.25rem 0;
+}
+
+.meter {
+  height: 0.5rem;
+  background: #ddd;
+}
+
+.meter i {
+  display: block;
+  height: 100%;
+  background: #3788d8;
+}
+
+.panel {
+  padding: 0;
+  overflow: hidden;
+}
+
+.panel-heading {
+  padding: 0.5rem;
+  border-bottom: 1px solid #aaa;
+}
+
+.panel-heading h2 {
+  margin: 0;
+}
+
+.architecture,
+.requests {
+  overflow: auto;
+}
+
+.requests {
+  max-height: 45rem;
+  padding: 0.5rem;
+}
+
+.trace {
+  display: block;
+  width: 100%;
+  margin-bottom: 0.25rem;
+  padding: 0.5rem;
+  text-align: left;
+  background: white;
+  border: 1px solid #aaa;
+}
+
+.trace.selected {
+  background: #def;
+}
+
+.trace small {
+  display: block;
+}
+
+.empty {
+  padding: 1rem;
+}
+
+#topology {
+  width: 100%;
+  display: block;
+}
+
+.edge {
+  fill: none;
+  stroke: #888;
+  stroke-width: 2;
+  marker-end: url(#arrow);
+}
+
+.node > rect {
+  fill: white;
+  stroke: #555;
+}
+
+.node text {
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.node text.muted,
+.node text.metric {
+  font-size: 9px;
+  font-weight: normal;
+}
+
+.ready {
+  fill: green;
+}
+
+.not-ready {
+  fill: red;
+}
+
+.meter-bg {
+  fill: #ddd;
+}
+
+.meter-fill {
+  fill: #3788d8;
+}
+
+.meter-fill.memory {
+  fill: #4a4;
+}
+
+.request-marker {
+  fill: black;
+}
+
+.kill {
+  cursor: pointer;
+}
+
+.kill rect {
+  fill: white;
+  stroke: #900;
+}
+
+.kill text {
+  fill: #900;
+}
+
+.warning > rect:first-child {
+  stroke: orange;
+  stroke-width: 2;
+}
+
+.terminating,
+.unavailable,
+.busy {
+  opacity: 0.4;
+}
+
+.active-flow.edge {
+  stroke: blue;
+  stroke-width: 4;
+}
+
+.active-flow.node > rect:first-child {
+  stroke: blue;
+  stroke-width: 3;
+}
+
+@media (max-width: 900px) {
+  .dashboard-grid,
+  .summaries {
+    grid-template-columns: 1fr;
+  }
 }

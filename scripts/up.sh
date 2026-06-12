@@ -24,6 +24,7 @@ docker build -t k3s-auth-frontend:local frontend
 k3d image import -c k3s-test k3s-auth-backend:local k3s-auth-frontend:local
 
 kubectl apply -k k3s/overlays/local
+kubectl rollout restart deployment/backend deployment/frontend -n k3s-auth
 kubectl rollout status statefulset/mongodb -n k3s-auth --timeout=180s
 kubectl rollout status deployment/backend -n k3s-auth --timeout=180s
 kubectl rollout status deployment/frontend -n k3s-auth --timeout=180s

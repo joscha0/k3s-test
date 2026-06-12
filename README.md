@@ -31,8 +31,11 @@ The scripts generate and use `.kube/k3d-k3s-test.yaml` explicitly. They do not r
 - `Hello World` is public.
 - `Hello User` requires a signed-in user.
 - `Hello Admins` requires the `admin` role.
+- `/dashboard` gives admins a live architecture view with pod CPU and memory usage, configured requests and limits, recent request flows, and pod deletion controls.
 - Sign-up creates normal users. The configured bootstrap account is created or promoted to admin whenever a backend pod starts.
 - Access JWTs live for 15 minutes and remain in browser memory. Rotating refresh tokens live for seven days in an HttpOnly, SameSite cookie.
+
+The dashboard reads pod usage from the K3s Metrics Server. Metrics may briefly show as unavailable while a new pod or the metrics pipeline becomes ready.
 
 ## Development
 

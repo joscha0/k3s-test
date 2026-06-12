@@ -34,10 +34,13 @@ admin_signin="$(curl -fsS -H 'content-type: application/json' \
   "$BASE_URL/api/auth/signin")"
 admin_token="$(printf '%s' "$admin_signin" | node -pe 'JSON.parse(require("fs").readFileSync(0, "utf8")).accessToken')"
 curl -fsS -H "authorization: Bearer $admin_token" "$BASE_URL/api/hello/admin" | grep -q "Hello admin"
+dashboard="$(curl -fsS -H "authorization: Bearer $admin_token" "$BASE_URL/api/dashboard/snapshot")"
+printf '%s' "$dashboard" | grep -q '"pods"'
+printf '%s' "$dashboard" | grep -q '"totals"'
 
 backend_pod="$(kubectl get pods -n k3s-auth -l app=backend -o jsonpath='{.items[0].metadata.name}')"
 frontend_pod="$(kubectl get pods -n k3s-auth -l app=frontend -o jsonpath='{.items[0].metadata.name}')"
-kubectl delete pod -n k3s-auth "$backend_pod" --wait=false
+curl -fsS -X DELETE -H "authorization: Bearer $admin_token" "$BASE_URL/api/dashboard/pods/$backend_pod" | grep -q deleting
 kubectl delete pod -n k3s-auth "$frontend_pod" --wait=false
 curl -fsS "$BASE_URL/api/hello/world" | grep -q "Hello world"
 kubectl rollout status deployment/backend -n k3s-auth --timeout=180s

@@ -1,6 +1,7 @@
 import argon2 from 'argon2'
 import fp from 'fastify-plugin'
 import { Collection, Db, MongoClient, MongoServerError, ObjectId } from 'mongodb'
+import './config'
 
 export type UserRole = 'user' | 'admin'
 
@@ -21,9 +22,22 @@ export interface SessionDocument {
   createdAt: Date
 }
 
+export interface RequestTraceDocument {
+  _id?: ObjectId
+  method: string
+  route: string
+  status: number
+  startedAt: Date
+  durationMs: number
+  backendPod: string
+  accessedMongoDB: boolean
+  expiresAt: Date
+}
+
 export interface DatabaseCollections {
   users: Collection<UserDocument>
   sessions: Collection<SessionDocument>
+  requestTraces: Collection<RequestTraceDocument>
 }
 
 async function bootstrapAdmin (collections: DatabaseCollections, username: string, password: string): Promise<void> {
@@ -51,13 +65,16 @@ export default fp(async (fastify) => {
   const db: Db = client.db(fastify.config.mongodbDatabase)
   const collections: DatabaseCollections = {
     users: db.collection<UserDocument>('users'),
-    sessions: db.collection<SessionDocument>('sessions')
+    sessions: db.collection<SessionDocument>('sessions'),
+    requestTraces: db.collection<RequestTraceDocument>('request_traces')
   }
 
   await Promise.all([
     collections.users.createIndex({ username: 1 }, { unique: true }),
     collections.sessions.createIndex({ tokenHash: 1 }, { unique: true }),
-    collections.sessions.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 })
+    collections.sessions.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
+    collections.requestTraces.createIndex({ startedAt: -1 }),
+    collections.requestTraces.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 })
   ])
 
   if (fastify.config.bootstrapAdminUsername !== undefined && fastify.config.bootstrapAdminPassword !== undefined) {
@@ -71,7 +88,7 @@ export default fp(async (fastify) => {
   fastify.decorate('db', db)
   fastify.decorate('collections', collections)
   fastify.addHook('onClose', async () => await client.close())
-})
+}, { name: 'database', dependencies: ['config'] })
 
 declare module 'fastify' {
   interface FastifyInstance {
