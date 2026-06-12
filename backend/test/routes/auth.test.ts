@@ -4,6 +4,19 @@ import { build } from '../helper'
 
 const user = { username: 'test_user', password: 'correct-horse-battery-staple' }
 
+test('hello routes expose public and protected responses', async (t) => {
+  const app = await build(t)
+
+  const world = await app.inject({ url: '/api/hello/world' })
+  assert.equal(world.statusCode, 200)
+
+  const protectedUser = await app.inject({ url: '/api/hello/user' })
+  assert.equal(protectedUser.statusCode, 401)
+
+  const protectedAdmin = await app.inject({ url: '/api/hello/admin' })
+  assert.equal(protectedAdmin.statusCode, 401)
+})
+
 test('signup, protected routes, refresh rotation, and signout', async (t) => {
   const app = await build(t)
 

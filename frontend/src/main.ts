@@ -92,10 +92,11 @@ async function submitCredentials (event: SubmitEvent): Promise<void> {
   render()
 }
 
-function authForm (message = ''): string {
+function authForm (message = '', required = false): string {
   return `<section class="auth-card">
-    <p>Authentication required</p>
+    <p>${required ? 'Authentication required' : 'Optional authentication'}</p>
     <h2>Sign in to the cluster lab</h2>
+    <p>${required ? 'Sign in with an admin account to continue.' : 'Sign in or sign up to access the protected endpoints.'}</p>
     <form id="credentials">
       <label>Username <input name="username" required minlength="3" maxlength="32"></label>
       <label>Password <input name="password" type="password" required minlength="8" maxlength="128"></label>
@@ -124,25 +125,28 @@ function bindCommon (): void {
 function renderDemo (): void {
   app.innerHTML = `<main class="demo">
     <h1>K3s Auth Demo</h1>
-    ${sessionControls()}
     <p><a href="/dashboard">Open dashboard</a></p>
-    ${currentUser === undefined ? authForm() : `<section class="demo-panel"><h2>Hello endpoints</h2><div id="tabs" class="actions"></div><pre id="output">Choose an endpoint</pre></section>`}
+    ${currentUser === undefined ? authForm() : sessionControls()}
+    <section class="demo-panel"><h2>Hello endpoints</h2><div id="tabs" class="actions"></div><pre id="output">Loading public endpoint...</pre></section>
   </main>`
   bindCommon()
-  if (currentUser === undefined) return
   const routes = [['Hello World', '/api/hello/world'], ['Hello User', '/api/hello/user'], ['Hello Admins', '/api/hello/admin']]
   for (const [label, path] of routes) {
     const button = document.createElement('button')
     button.textContent = label
-    button.addEventListener('click', async () => {
-      const output = document.querySelector<HTMLElement>('#output')!
-      output.textContent = 'Loading...'
-      const response = await request(path)
-      const body = await response.json()
-      output.textContent = response.ok ? body.message : `${response.status}: ${body.message ?? body.error}`
-    })
+    button.addEventListener('click', async () => await showResult(path))
     document.querySelector('#tabs')!.append(button)
   }
+  void showResult('/api/hello/world')
+}
+
+async function showResult (path: string): Promise<void> {
+  const output = document.querySelector<HTMLElement>('#output')
+  if (output === null) return
+  output.textContent = 'Loading...'
+  const response = await request(path)
+  const body = await response.json()
+  output.textContent = response.ok ? body.message : `${response.status}: ${body.message ?? body.error}`
 }
 
 function formatCpu (value?: number): string { return value === undefined ? 'n/a' : `${Math.round(value)}m` }
@@ -279,7 +283,7 @@ async function streamSnapshots (): Promise<void> {
 
 function renderDashboard (): void {
   if (currentUser === undefined) {
-    app.innerHTML = `<main><p><a href="/">Back to demo</a></p>${authForm('Sign in with an admin account to open the dashboard.')}</main>`
+    app.innerHTML = `<main><p><a href="/">Back to demo</a></p>${authForm('Sign in with an admin account to open the dashboard.', true)}</main>`
     bindCommon()
     return
   }
