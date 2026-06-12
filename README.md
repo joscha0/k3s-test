@@ -26,6 +26,24 @@ Delete the environment with `./scripts/down.sh`. The MongoDB volume belongs to t
 
 The scripts generate and use `.kube/k3d-k3s-test.yaml` explicitly. They do not read or modify the host K3s kubeconfig at `/etc/rancher/k3s/k3s.yaml`.
 
+### Make User Admin
+
+Open MongoDB:
+
+```bash
+kubectl --kubeconfig .kube/k3d-k3s-test.yaml exec -it -n k3s-auth mongodb-0 -- sh -lc \
+  'mongosh --username "$MONGO_INITDB_ROOT_USERNAME" --password "$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin k3s_auth'
+```
+
+Make User Admin
+
+```js
+db.users.updateOne(
+  { username: "test" },
+  { $set: { role: "admin", updatedAt: new Date() } },
+);
+```
+
 ## Application
 
 - `Hello World` is public.
@@ -36,15 +54,3 @@ The scripts generate and use `.kube/k3d-k3s-test.yaml` explicitly. They do not r
 - Access JWTs live for 15 minutes and remain in browser memory. Rotating refresh tokens live for seven days in an HttpOnly, SameSite cookie.
 
 The dashboard reads pod usage from the K3s Metrics Server. Metrics may briefly show as unavailable while a new pod or the metrics pipeline becomes ready.
-
-## Development
-
-Run backend checks with `cd backend && pnpm test`. Run frontend checks with `cd frontend && pnpm build`.
-
-The k3s resources use a reusable Kustomize base and a local k3d overlay. `.env` is copied to the ignored `k3s/overlays/local/secret.env` before deployment. These are standard Kubernetes API manifests because k3s implements the Kubernetes API.
-
-## Production Notes
-
-This repository is a production-oriented base, not a complete production platform. Replace the single in-cluster MongoDB instance with a managed or replicated deployment, manage secrets outside Git, terminate TLS before or at the cluster entrypoint, use a highly available control plane, and publish immutable images through a registry.
-
-When enabling HTTPS, set `COOKIE_SECURE=true`.
