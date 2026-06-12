@@ -1,5 +1,8 @@
 # K3s Authentication Demo
 
+<img width="2851" height="1638" alt="image" src="https://github.com/user-attachments/assets/14c9237f-d30d-4e0a-8b54-139af8a6bde9" />
+
+
 Minimal full-stack authentication demo running in a k3d-managed K3s cluster:
 
 `browser -> k3d nginx serverlb -> Traefik Ingress -> frontend/backend -> MongoDB`
