@@ -88,6 +88,30 @@ test('signin rejects invalid credentials', async (t) => {
   assert.equal(response.statusCode, 401)
 })
 
+test('auth routes reject malformed credential bodies', async (t) => {
+  const app = await build(t)
+
+  const missingBody = await app.inject({
+    method: 'POST',
+    url: '/api/auth/signup'
+  })
+  assert.equal(missingBody.statusCode, 400)
+
+  const invalidSignup = await app.inject({
+    method: 'POST',
+    url: '/api/auth/signup',
+    payload: { username: {}, password: 'valid-password' }
+  })
+  assert.equal(invalidSignup.statusCode, 400)
+
+  const invalidSignin = await app.inject({
+    method: 'POST',
+    url: '/api/auth/signin',
+    payload: []
+  })
+  assert.equal(invalidSignin.statusCode, 400)
+})
+
 test('bootstrap account has admin access', async (t) => {
   const app = await build(t, {
     BOOTSTRAP_ADMIN_USERNAME: 'cluster_admin',

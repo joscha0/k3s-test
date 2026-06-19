@@ -7,16 +7,31 @@ import type { UserDocument } from "../../plugins/database";
 
 const USERNAME_PATTERN = /^[a-z0-9_-]{3,32}$/;
 const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+const credentialsSchema = {
+  body: {
+    type: "object",
+    required: ["username", "password"],
+    additionalProperties: false,
+    properties: {
+      username: { type: "string" },
+      password: { type: "string" },
+    },
+  },
+} as const;
 
 interface CredentialsBody {
   username: string;
   password: string;
 }
 
-function normalizeCredentials(body: CredentialsBody): CredentialsBody {
+function normalizeCredentials(body: unknown): CredentialsBody | undefined {
+  if (body === null || typeof body !== "object") return undefined;
+  const { username, password } = body as Record<string, unknown>;
+  if (typeof username !== "string" || typeof password !== "string")
+    return undefined;
   return {
-    username: body.username?.trim().toLowerCase(),
-    password: body.password,
+    username: username.trim().toLowerCase(),
+    password,
   };
 }
 
@@ -70,13 +85,16 @@ const auth: FastifyPluginAsync = async (fastify) => {
     };
   }
 
-  fastify.post<{ Body: CredentialsBody }>(
+  fastify.post<{ Body: unknown }>(
     "/signup",
     {
+      schema: credentialsSchema,
       config: { rateLimit: { max: 10, timeWindow: "1 minute" } },
     },
     async (request, reply) => {
       const credentials = normalizeCredentials(request.body);
+      if (credentials === undefined)
+        return await reply.badRequest("Username and password are required");
       const validationError = validateCredentials(credentials);
       if (validationError !== undefined)
         return await reply.badRequest(validationError);
@@ -105,13 +123,16 @@ const auth: FastifyPluginAsync = async (fastify) => {
     },
   );
 
-  fastify.post<{ Body: CredentialsBody }>(
+  fastify.post<{ Body: unknown }>(
     "/signin",
     {
+      schema: credentialsSchema,
       config: { rateLimit: { max: 10, timeWindow: "1 minute" } },
     },
     async (request, reply) => {
       const credentials = normalizeCredentials(request.body);
+      if (credentials === undefined)
+        return await reply.badRequest("Username and password are required");
       const user = await fastify.collections.users.findOne({
         username: credentials.username,
       });
